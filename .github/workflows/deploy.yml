@@ -21,6 +21,14 @@ jobs:
         run: npm install
 
       - name: Build Next.js (static export)
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyAZSl5v6fzI0jUptNTi4KtDa8HzstXgZYY
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: prevoya.firebaseapp.com
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: prevoya
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: prevoya.firebasestorage.app
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "318851644585"
+          NEXT_PUBLIC_FIREBASE_APP_ID: 1:318851644585:web:c9fb84b9235d611c3f3db8
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: G-M632N6E4X7
         run: npm run build
 
       - name: Install functions dependencies
