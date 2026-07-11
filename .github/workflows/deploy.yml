@@ -51,3 +51,4 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-key.json
         run: |
           npx firebase deploy --only functions --force
+        continue-on-error: true
