@@ -233,7 +233,7 @@ export default function Home() {
                     alt="Prévoya"
                     width={300}
                     height={75}
-                    className="brightness-0 invert drop-shadow-lg"
+                    className="drop-shadow-lg"
                     priority
                   />
                 </div>
