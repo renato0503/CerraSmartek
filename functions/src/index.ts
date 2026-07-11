@@ -1,16 +1,15 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions/v1";
 import { onCall } from "firebase-functions/v2/https";
 
 admin.initializeApp();
 
-export const analyzeBairro = functions
-  .region("southamerica-east1")
-  .https.onCall(async (data, context) => {
-    const { cep, nicho, raio = 1000 } = data;
+export const analyzeBairro = onCall(
+  { region: "southamerica-east1", cors: true },
+  async (request) => {
+    const { cep, nicho, raio = 1000 } = request.data;
 
     if (!cep || !nicho) {
-      throw new functions.https.HttpsError("invalid-argument", "CEP e nicho são obrigatórios");
+      throw new Error("CEP e nicho são obrigatórios");
     }
 
     const { geocodeCep } = await import("./utils/geocoding");
@@ -38,7 +37,7 @@ export const analyzeBairro = functions
       plano: "basico",
       status: "concluido",
       concorrentes,
-      userId: context.auth?.uid || "anon",
+      userId: request.auth?.uid || "anon",
       origem: "landing_page",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -50,7 +49,8 @@ export const analyzeBairro = functions
       endereco: coordenadas.endereco,
       coordenadas: { lat: coordenadas.lat, lng: coordenadas.lng },
     };
-  });
+  }
+);
 
 export const getReportStatus = onCall(
   { region: "southamerica-east1", cors: true },
