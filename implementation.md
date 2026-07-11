@@ -1,5 +1,31 @@
 ﻿# Prévoya - Plano de Implementação
 
+> **Atualizado:** Julho 2026 | [Repo](https://github.com/renato0503/CerraSmartek) | [Produção](https://prevoya.web.app)
+
+## Status Atual (Jul/2026)
+
+| Fase | Status | Entregue |
+|---|---|---|
+| 0 - Fundação | ✅ Concluída | Next.js, Firebase Auth, Layout, Landing page, Rotas |
+| 1 - Lead Gen | ✅ Concluída | Wizard 4 passos, MapPicker, Raio-X gratuito, PDF jsPDF, Cloud Function `analyzeBairro` |
+| 2 - Monetização | ✅ Concluída | Stripe checkout/webhook, Pipeline IA (Groq+Puppeteer), Dashboard, Visualização relatório |
+| 3 - Crescimento | ✅ Concluída | Leads CRM (CNPJ + Brasil API), Admin dashboard, Rate limiting, Reembolso, Comparativo |
+| 4 - Escala | ✅ Concluída | PWA, WhatsApp share, Nicho templates (9 nichos), Afiliados, Fornecedores B2B |
+
+### Cloud Functions deployadas
+
+| Function | Tipo | Status |
+|---|---|---|
+| `analyzeBairro` (ex-generateFreeReport) | 1st gen HTTPS | ✅ Deployed |
+| `triggerReport`, `aiReportWriter`, `pdfGenerator` | 2nd gen Firestore trigger | ⏳ Pendente (bloqueio org policy Cloud Build) |
+
+### Pendências
+
+- [ ] Resolver bloqueio de Org Policy no Cloud Build para deploy das funções 2nd gen
+- [ ] Configurar Google Places API key (`firebase functions:config:set google.places_api_key="..."`)  
+- [ ] Configurar Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
+- [ ] Criar índices compostos no Firestore (leads por CNPJ)
+
 ## Índice
 
 1. [Setup Inicial do Projeto](#1-setup-inicial-do-projeto)

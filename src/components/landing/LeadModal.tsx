@@ -87,7 +87,7 @@ export default function LeadModal({ open, onClose }: Props) {
         origem: "landing_modal", status: "novo", createdAt: serverTimestamp(),
       });
 
-      const gen = httpsCallable(functions, "generateFreeReport");
+      const gen = httpsCallable(functions, "analyzeBairro");
       const result = await gen({ cep: fmt(cep, 8), nicho: nichoFinal || nicho, raio: 1000 });
       const { briefingId } = (result.data as { briefingId: string }) || {};
       if (briefingId) router.push(`/resultado?id=${briefingId}`);

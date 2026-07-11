@@ -1,47 +1,15 @@
 import * as admin from "firebase-admin";
-import { onCall } from "firebase-functions/v2/https";
+import * as functions from "firebase-functions";
 
 admin.initializeApp();
 
-export { onDocumentCreated } from "firebase-functions/v2/firestore";
-export { onCall } from "firebase-functions/v2/https";
-export { onRequest } from "firebase-functions/v2/https";
-
-export { triggerReport } from "./triggerReport";
-export { aiReportWriter } from "./aiReportWriter";
-export { pdfGenerator } from "./pdfGenerator";
-export { createStripeCheckout } from "./createStripeCheckout";
-export { stripeWebhook } from "./stripeWebhook";
-export { solicitarReembolso } from "./solicitarReembolso";
-export { createSubscriptionCheckout } from "./createSubscriptionCheckout";
-
-export const searchPlaces = onCall(
-  { region: "southamerica-east1" },
-  async (request) => {
-    const { coordenadas, raio, nicho } = request.data;
-    const { placesWorker } = await import("./workers/placesWorker");
-    const concorrentes = await placesWorker({ coordenadas, raio, nicho });
-    return { concorrentes };
-  }
-);
-
-export const getDemographicData = onCall(
-  { region: "southamerica-east1" },
-  async (request) => {
-    const { cep, raio } = request.data;
-    const { ibgeWorker } = await import("./workers/ibgeWorker");
-    const demografia = await ibgeWorker({ cep, raio });
-    return { demografia };
-  }
-);
-
-export const generateFreeReport = onCall(
-  { region: "southamerica-east1", cors: true },
-  async (request) => {
-    const { cep, nicho, raio = 1000 } = request.data;
+export const analyzeBairro = functions
+  .region("southamerica-east1")
+  .https.onCall(async (data, context) => {
+    const { cep, nicho, raio = 1000 } = data;
 
     if (!cep || !nicho) {
-      throw new Error("CEP e nicho são obrigatórios");
+      throw new functions.https.HttpsError("invalid-argument", "CEP e nicho são obrigatórios");
     }
 
     const { geocodeCep } = await import("./utils/geocoding");
@@ -69,7 +37,7 @@ export const generateFreeReport = onCall(
       plano: "basico",
       status: "concluido",
       concorrentes,
-      userId: request.auth?.uid || "anon",
+      userId: context.auth?.uid || "anon",
       origem: "landing_page",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -81,25 +49,23 @@ export const generateFreeReport = onCall(
       endereco: coordenadas.endereco,
       coordenadas: { lat: coordenadas.lat, lng: coordenadas.lng },
     };
-  }
-);
+  });
 
-export const getReportStatus = onCall(
-  { region: "southamerica-east1" },
-  async (request) => {
-    const { briefingId } = request.data;
-    if (!briefingId) throw new Error("briefingId obrigatório");
+export const getReportStatus = functions
+  .region("southamerica-east1")
+  .https.onCall(async (data) => {
+    const { briefingId } = data;
+    if (!briefingId) throw new functions.https.HttpsError("invalid-argument", "briefingId obrigatório");
 
     const doc = await admin.firestore().collection("briefings").doc(briefingId).get();
-    if (!doc.exists) throw new Error("Briefing não encontrado");
+    if (!doc.exists) throw new functions.https.HttpsError("not-found", "Briefing não encontrado");
 
-    const data = doc.data();
+    const briefing = doc.data();
     return {
-      status: data?.status || "erro",
-      concorrentes: data?.concorrentes || [],
-      endereco: data?.endereco || "",
-      pdfUrl: data?.pdfUrl || null,
-      aiReport: data?.aiReport || null,
+      status: briefing?.status || "erro",
+      concorrentes: briefing?.concorrentes || [],
+      endereco: briefing?.endereco || "",
+      pdfUrl: briefing?.pdfUrl || null,
+      aiReport: briefing?.aiReport || null,
     };
-  }
-);
+  });

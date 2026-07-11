@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Prévoya — Inteligência de Localização
 
-## Getting Started
+Plataforma SaaS de análise de viabilidade comercial. Descubra se o ponto comercial é realmente bom antes de investir.
 
-First, run the development server:
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Frontend | Next.js 16 + TypeScript + Tailwind CSS (static export) |
+| Auth | Firebase Auth (Google + Email/Senha) |
+| Backend | Firebase Cloud Functions (Node.js 22, southamerica-east1) |
+| Database | Firestore |
+| IA | Groq (Llama 3.3 70B) com fallback |
+| Mapas | Leaflet + Google Places API |
+| Dados externos | IBGE, ViaCEP, Brasil API (CNPJ) |
+| PDF | jsPDF (client) + Puppeteer (server) |
+| Pagamentos | Stripe (checkout + subscription + webhook + refund) |
+| Hosting | Firebase Hosting |
+| PWA | Manifest + Install prompt |
+
+## Deploy
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build          # Build Next.js (static export → out/)
+npm run deploy:all     # Deploy hosting + firestore + functions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+URL produção: https://prevoya.web.app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Desenvolvimento local
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev            # Next.js dev server
+firebase emulators:start  # Firebase local
+```
 
-## Learn More
+## Estrutura
 
-To learn more about Next.js, take a look at the following resources:
+```
+prevoya/
+├── src/
+│   ├── app/              # Pages (/, /login, /dashboard, /wizard, /admin, /resultado, etc)
+│   ├── components/
+│   │   ├── landing/      # LeadModal, CepForm, AffiliateTracker
+│   │   ├── layout/       # Header, Footer, AuthGuard
+│   │   ├── ui/           # Button, Card, Input, MapPicker, PWA, WhatsApp
+│   │   └── wizard/       # WizardContainer, StepIndicator
+│   ├── lib/              # firebase, auth, firestore
+│   ├── services/         # places, ibge, reports
+│   └── types/            # briefing, report, user
+├── functions/
+│   └── src/
+│       ├── index.ts              # Cloud Functions entry
+│       ├── workers/              # places, ibge, sentiment, supplier
+│       └── utils/                # cache, geocoding, prompts, rateLimit, errorHandler
+├── public/               # Static assets, manifest.json, robots.txt, sitemap.xml
+├── firebase.json         # Firebase config
+├── firestore.rules       # Security rules
+└── .env.local            # Firebase keys (gitignored)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Funcionalidades
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Landing page com modal de lead capture (CNPJ, nome, email, WhatsApp)
+- Wizard de briefing 4 passos (nicho → localização → contexto → resumo)
+- Raio-X gratuito do bairro via Cloud Function + Google Places API
+- Relatório completo com IA (SWOT, demografia, concorrência, plano de ação)
+- Dashboard com status em tempo real, comparativo de bairros
+- Admin CRM com pipeline de leads (novo → em_contato → qualificado → fechado)
+- Stripe checkout para planos pagos
+- PWA instalável + WhatsApp share
+- Programa de afiliados (?ref=)
