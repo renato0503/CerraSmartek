@@ -51,7 +51,7 @@ interface Metrics {
 }
 
 export default function AdminPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [checking, setChecking] = useState(true);
   const [tab, setTab] = useState<"metrics" | "leads">("metrics");
@@ -263,11 +263,27 @@ export default function AdminPage() {
     return counts;
   }, [leads]);
 
-  if (checking || !user) {
+  if (authLoading || (checking && user)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
       </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AuthGuard>
+        <Header />
+        <main className="flex flex-1 items-center justify-center px-4 py-20">
+          <Card className="w-full max-w-md text-center" padding="lg">
+            <h2 className="text-xl font-bold text-gray-900">Sessão encerrada</h2>
+            <p className="mt-2 text-gray-500">Você foi desconectado.</p>
+            <Link href="/login"><Button className="mt-6">Fazer Login</Button></Link>
+          </Card>
+        </main>
+        <Footer />
+      </AuthGuard>
     );
   }
 
