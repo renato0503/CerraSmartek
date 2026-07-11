@@ -30,6 +30,7 @@ export default function LeadModal({ open, onClose }: Props) {
   const [nome, setNome] = useState(""); const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState(""); const [cnpj, setCnpj] = useState("");
   const [cep, setCep] = useState(""); const [nicho, setNicho] = useState("");
+  const [outroNicho, setOutroNicho] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [animating, setAnimating] = useState(false);
@@ -50,18 +51,23 @@ export default function LeadModal({ open, onClose }: Props) {
   const validate1 = () => {
     if (!nome.trim()) { setError("Informe seu nome"); return false; }
     if (!email.trim() || !email.includes("@")) { setError("E-mail inválido"); return false; }
-    if (!fmt(telefone, 11).match(/^\d{10,11}$/)) { setError("WhatsApp inválido"); return false; }
+    if (!fmt(telefone, 11).match(/^\d{10,11}$/)) { setError("WhatsApp inválido (DDD + número)"); return false; }
     if (fmt(cnpj, 14).length !== 14) { setError("CNPJ inválido (14 dígitos)"); return false; }
     return true;
   };
+
+  const nichoFinal = nicho === "outros" ? outroNicho.trim() : nicho;
+
   const validate2 = () => {
-    if (fmt(cep, 8).length !== 8) { setError("CEP inválido"); return false; }
+    if (nicho === "outros" && !outroNicho.trim()) { setError("Descreva seu tipo de negócio"); return false; }
+    if (fmt(cep, 8).length !== 8) { setError("CEP deve ter 8 dígitos"); return false; }
     if (!nicho) { setError("Selecione o tipo de negócio"); return false; }
     return true;
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (!validate2()) return;
     setLoading(true);
     try {
@@ -70,22 +76,22 @@ export default function LeadModal({ open, onClose }: Props) {
       const existente = await getDocs(
         query(collection(db, "leads"), where("cnpj", "==", cnpjLimpo), where("createdAt", ">=", umMes))
       );
-      if (!existente.empty) { setError("CNPJ já usou análise grátis nos últimos 30 dias"); setLoading(false); return; }
+      if (!existente.empty) { setError("Este CNPJ já usou a análise gratuita nos últimos 30 dias"); setLoading(false); return; }
 
       let cnpjData = null;
       try { const r = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`); if (r.ok) cnpjData = await r.json(); } catch { /* */ }
 
       await addDoc(collection(db, "leads"), {
         nome: nome.trim(), email: email.trim().toLowerCase(), telefone: fmt(telefone, 11),
-        cnpj: cnpjLimpo, cnpjData: cnpjData || null, cep: fmt(cep, 8), nicho,
+        cnpj: cnpjLimpo, cnpjData: cnpjData || null, cep: fmt(cep, 8), nicho: nichoFinal || nicho,
         origem: "landing_modal", status: "novo", createdAt: serverTimestamp(),
       });
 
       const gen = httpsCallable(functions, "generateFreeReport");
-      const result = await gen({ cep: fmt(cep, 8), nicho, raio: 1000 });
+      const result = await gen({ cep: fmt(cep, 8), nicho: nichoFinal || nicho, raio: 1000 });
       const { briefingId } = (result.data as { briefingId: string }) || {};
       if (briefingId) router.push(`/resultado?id=${briefingId}`);
-    } catch (err) { setError(err instanceof Error ? err.message : "Erro"); }
+    } catch (err) { setError(err instanceof Error ? err.message : "Erro ao gerar análise"); }
     finally { setLoading(false); }
   };
 
@@ -119,7 +125,7 @@ export default function LeadModal({ open, onClose }: Props) {
                 <div><label className="block text-xs font-medium text-gray-600 mb-1">CNPJ</label><input type="text" value={cnpj} onChange={e => setCnpj(fmtCnpj(e.target.value))} placeholder="00.000.000/0000-00" maxLength={18} className={inputClass} /></div>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="button" size="lg" onClick={() => { if (validate1()){ setStep(2); setError(""); } }}
+              <Button type="button" size="lg" onClick={() => { setError(""); if (validate1()) setStep(2); }}
                 className="w-full bg-amber-400 font-bold text-blue-950 hover:bg-amber-300">
                 Continuar &rarr;
               </Button>
@@ -133,6 +139,12 @@ export default function LeadModal({ open, onClose }: Props) {
                   {NICHOS.map(n => <option key={n.value} value={n.value} disabled={n.value === ""}>{n.label}</option>)}
                 </select></div>
               </div>
+              {nicho === "outros" && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Descreva seu negócio</label>
+                  <input type="text" value={outroNicho} onChange={e => setOutroNicho(e.target.value)} placeholder="Ex: Loja de colchões, Marmoraria..." className={inputClass} />
+                </div>
+              )}
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" size="lg" disabled={loading}
                 className="w-full bg-amber-400 font-bold text-blue-950 hover:bg-amber-300">
