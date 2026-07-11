@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
+import { onCall } from "firebase-functions/v2/https";
 
 admin.initializeApp();
 
@@ -51,14 +52,14 @@ export const analyzeBairro = functions
     };
   });
 
-export const getReportStatus = functions
-  .region("southamerica-east1")
-  .https.onCall(async (data) => {
-    const { briefingId } = data;
-    if (!briefingId) throw new functions.https.HttpsError("invalid-argument", "briefingId obrigatório");
+export const getReportStatus = onCall(
+  { region: "southamerica-east1", cors: true },
+  async (request) => {
+    const { briefingId } = request.data;
+    if (!briefingId) throw new Error("briefingId obrigatório");
 
     const doc = await admin.firestore().collection("briefings").doc(briefingId).get();
-    if (!doc.exists) throw new functions.https.HttpsError("not-found", "Briefing não encontrado");
+    if (!doc.exists) throw new Error("Briefing não encontrado");
 
     const briefing = doc.data();
     return {
@@ -68,4 +69,5 @@ export const getReportStatus = functions
       pdfUrl: briefing?.pdfUrl || null,
       aiReport: briefing?.aiReport || null,
     };
-  });
+  }
+);

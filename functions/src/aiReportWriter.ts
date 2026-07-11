@@ -1,5 +1,5 @@
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import Groq from "groq-sdk";
 import { SYSTEM_PROMPT, NICHE_PROMPTS } from "./utils/prompts";
