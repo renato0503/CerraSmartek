@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -8,46 +8,42 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PwaInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const promptRef = useRef<BeforeInstallPromptEvent | null>(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    const stored = localStorage.getItem("pwa_dismissed");
+    if (stored) return;
+
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      const stored = localStorage.getItem("pwa_dismissed");
-      if (!stored) setShowPrompt(true);
+      promptRef.current = e as BeforeInstallPromptEvent;
+      setVisible(true);
     };
 
     window.addEventListener("beforeinstallprompt", handler);
 
-    window.addEventListener("appinstalled", () => {
-      setShowPrompt(false);
-    });
+    window.addEventListener("appinstalled", () => setVisible(false));
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  if (!showPrompt || dismissed) return null;
+  if (!visible) return null;
 
-  const handleInstall = async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") setShowPrompt(false);
-    setDeferredPrompt(null);
-  };
-
-  const handleDismiss = () => {
-    setShowPrompt(false);
-    setDismissed(true);
-    localStorage.setItem("pwa_dismissed", "1");
+  const install = async () => {
+    if (!promptRef.current) return;
+    await promptRef.current.prompt();
+    const { outcome } = await promptRef.current.userChoice;
+    setVisible(false);
+    if (outcome === "dismissed") {
+      localStorage.setItem("pwa_dismissed", "1");
+    }
   };
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-50 mx-auto max-w-sm rounded-2xl border border-gray-200 bg-white p-4 shadow-xl sm:left-auto sm:right-4 sm:w-80">
+    <div className="fixed inset-x-4 bottom-20 z-50 mx-auto max-w-sm rounded-2xl border border-gray-200 bg-white p-4 shadow-xl sm:inset-x-auto sm:right-4 sm:w-80">
+      <button onClick={() => { setVisible(false); localStorage.setItem("pwa_dismissed", "1"); }}
+        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600">&times;</button>
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">
           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,23 +52,11 @@ export default function PwaInstallPrompt() {
         </div>
         <div className="flex-1">
           <p className="text-sm font-semibold text-gray-900">Instalar App</p>
-          <p className="mt-0.5 text-xs text-gray-500">
-            Adicione à tela inicial para acesso rápido.
-          </p>
-          <div className="mt-3 flex gap-2">
-            <button
-              onClick={handleInstall}
-              className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
-            >
-              Instalar
-            </button>
-            <button
-              onClick={handleDismiss}
-              className="rounded-lg px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100"
-            >
-              Agora não
-            </button>
-          </div>
+          <p className="mt-0.5 text-xs text-gray-500">Adicione à tela inicial para acesso rápido.</p>
+          <button onClick={install}
+            className="mt-3 w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700">
+            Instalar
+          </button>
         </div>
       </div>
     </div>

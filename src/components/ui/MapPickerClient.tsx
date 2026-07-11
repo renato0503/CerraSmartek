@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 
@@ -36,6 +36,10 @@ export default function MapPickerClient({
   selectedPosition,
 }: MapPickerClientProps) {
   const [center] = useState<[number, number]>(initialPosition);
+
+  useEffect(() => {
+    import("leaflet/dist/leaflet.css");
+  }, []);
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200">

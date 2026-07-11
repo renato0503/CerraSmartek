@@ -1,13 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/ui/WhatsAppFloat";
 import PwaInstallPrompt from "@/components/ui/PwaInstallPrompt";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import CepForm from "@/components/landing/CepForm";
+import LeadModal from "@/components/landing/LeadModal";
 import AffiliateTracker from "@/components/landing/AffiliateTracker";
 
 const FAQ_ITEMS = [
@@ -87,6 +89,7 @@ const PLANOS = [
 ];
 
 export default function Home() {
+  const [showModal, setShowModal] = useState(false);
   return (
     <>
       <Header />
@@ -143,11 +146,17 @@ export default function Home() {
                   </span>
                 </p>
 
-                <div className="mt-6 rounded-2xl bg-white/10 p-4 backdrop-blur">
-                  <p className="mb-3 text-sm font-medium text-white">
-                    Analise seu bairro agora:
-                  </p>
-                  <CepForm />
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border-2 border-amber-400 bg-amber-400/10 px-5 py-3 text-sm font-semibold text-amber-300 backdrop-blur transition-all hover:bg-amber-400/20 hover:text-amber-200"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Análise Rápida do Bairro — Grátis
+                  </button>
                 </div>
               </div>
 
@@ -386,6 +395,7 @@ export default function Home() {
       <Footer />
       <WhatsAppFloat />
       <PwaInstallPrompt />
+      <LeadModal open={showModal} onClose={() => setShowModal(false)} />
       <Suspense><AffiliateTracker /></Suspense>
     </>
   );
