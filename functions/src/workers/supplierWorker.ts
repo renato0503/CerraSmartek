@@ -52,7 +52,7 @@ export async function supplierWorker(params: {
         if (!allResults.find((s) => s.place_id === place.place_id)) {
           allResults.push({
             place_id: place.place_id || "",
-            nome: place.name,
+            nome: place.name || "",
             endereco: place.vicinity || "",
             rating: place.rating || 0,
             tipos: place.types || [],

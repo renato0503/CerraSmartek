@@ -130,7 +130,7 @@ export default function Header() {
               >
                 Entrar
               </Link>
-              <Link href="/wizard">
+              <Link href="/?open=modal">
                 <Button variant="primary" size="sm">
                   Começar Grátis
                 </Button>

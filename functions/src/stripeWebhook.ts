@@ -1,10 +1,10 @@
 import { onRequest } from "firebase-functions/v2/https";
-import Stripe from "stripe";
 import * as admin from "firebase-admin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-06-30.acacia" as Stripe.LatestApiVersion,
-});
+function getStripe() {
+  const Stripe = require("stripe");
+  return new Stripe(process.env.STRIPE_SECRET_KEY || "");
+}
 
 const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 
@@ -18,9 +18,10 @@ export const stripeWebhook = onRequest(
       return;
     }
 
-    let event: Stripe.Event;
+    let event;
 
     try {
+      const stripe = getStripe();
       event = stripe.webhooks.constructEvent(req.rawBody, sig, WEBHOOK_SECRET);
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
@@ -29,7 +30,7 @@ export const stripeWebhook = onRequest(
     }
 
     if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
+      const session = event.data.object;
       const { briefingId, userId, credits } = session.metadata || {};
 
       if (briefingId) {

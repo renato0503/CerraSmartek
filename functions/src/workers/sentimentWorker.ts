@@ -22,7 +22,6 @@ export async function sentimentWorker(concorrentes: Concorrente[]) {
           place_id: concorrente.place_id,
           fields: ["reviews", "name"],
           key: process.env.GOOGLE_PLACES_API_KEY || "",
-          language: "pt-BR",
         },
       });
 

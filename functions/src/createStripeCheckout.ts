@@ -1,11 +1,11 @@
 import { onCall } from "firebase-functions/v2/https";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-06-30.acacia" as Stripe.LatestApiVersion,
-});
 
 const BASE_URL = process.env.BASE_URL || "https://prevoya.web.app";
+
+function getStripe() {
+  const Stripe = require("stripe");
+  return new Stripe(process.env.STRIPE_SECRET_KEY || "");
+}
 
 const PRICES: Record<string, { amount: number; label: string; credits: number }> = {
   basico: { amount: 2500, label: "Análise Básica", credits: 1 },
@@ -29,6 +29,7 @@ export const createStripeCheckout = onCall<
     if (!price) throw new Error(`Plano inválido: ${plano}`);
 
     try {
+      const stripe = getStripe();
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [

@@ -20,10 +20,6 @@ export async function ibgeWorker(params: { cep: string; raio: number }) {
 
     if (!codigoIbge) return dadosInsuficientes();
 
-    const censoRes = await axios.get(
-      `https://servicodados.ibge.gov.br/api/v1/censos/nomes/ranking?localidade=${codigoIbge}&sexo=T`
-    );
-
     const municipioRes = await axios.get(
       `https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${codigoIbge}`
     );

@@ -38,7 +38,7 @@ export const pdfGenerator = onDocumentCreated(
 
       const page = await browser.newPage();
       const html = generateReportHTML(briefing);
-      await page.setContent(html, { waitUntil: "networkidle0" });
+      await page.setContent(html, { waitUntil: "load" });
 
       const pdfBuffer = await page.pdf({
         format: "A4",

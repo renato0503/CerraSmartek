@@ -86,7 +86,7 @@ async function callGroq(contexto: unknown, nichePrompt = "") {
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPrompt },
       { role: "user", content: JSON.stringify(contexto, null, 2) },
     ],
     response_format: { type: "json_object" },

@@ -40,6 +40,9 @@ functions/node_modules/
 .firebase/
 .prevoya-app/
 
+# Firebase service account keys
+*firebase-adminsdk*.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,10 +1,10 @@
 import { onCall } from "firebase-functions/v2/https";
-import Stripe from "stripe";
 import * as admin from "firebase-admin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-06-30.acacia" as Stripe.LatestApiVersion,
-});
+function getStripe() {
+  const Stripe = require("stripe");
+  return new Stripe(process.env.STRIPE_SECRET_KEY || "");
+}
 
 const db = admin.firestore();
 
@@ -43,11 +43,10 @@ export const solicitarReembolso = onCall<ReembolsoRequest>(
     }
 
     try {
-      const paymentIntents = await stripe.paymentIntents.list({
-        limit: 1,
-      });
+      const stripe = getStripe();
+      const paymentIntents = await stripe.paymentIntents.list({ limit: 1 });
 
-      const paymentIntent = paymentIntents.data.find((pi) =>
+      const paymentIntent = paymentIntents.data.find((pi: { metadata?: { briefingId?: string } }) =>
         pi.metadata?.briefingId === briefingId
       );
 
@@ -67,15 +66,14 @@ export const solicitarReembolso = onCall<ReembolsoRequest>(
         return { success: true, message: "Créditos devolvidos com sucesso" };
       }
 
-      const refund = await stripe.refunds.create({
+      await stripe.refunds.create({
         payment_intent: paymentIntent.id,
-        reason: "requested_by_customer" as Stripe.RefundCreateParams.Reason,
+        reason: "requested_by_customer",
       });
 
       await briefingDoc.ref.update({
         status: "reembolsado",
         motivoReembolso: motivo || "Não informado",
-        stripeRefundId: refund.id,
         reembolsadoEm: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -85,7 +83,7 @@ export const solicitarReembolso = onCall<ReembolsoRequest>(
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      return { success: true, message: "Reembolso processado com sucesso", refundId: refund.id };
+      return { success: true, message: "Reembolso processado com sucesso" };
     } catch (error) {
       console.error("Erro no reembolso:", error);
       throw new Error("Falha ao processar reembolso. Entre em contato com suporte.");

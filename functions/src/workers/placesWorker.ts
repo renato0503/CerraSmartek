@@ -39,7 +39,7 @@ export async function placesWorker(
       .slice(0, 15)
       .map((place) => ({
         place_id: place.place_id || "",
-        nome: place.name,
+        nome: place.name || "",
         endereco: place.vicinity || "",
         rating: place.rating || 0,
         total_ratings: place.user_ratings_total || 0,
