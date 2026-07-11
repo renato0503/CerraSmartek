@@ -1,30 +1,55 @@
 ﻿# Prévoya - Plano de Implementação
 
-> **Atualizado:** Julho 2026 | [Repo](https://github.com/renato0503/CerraSmartek) | [Produção](https://prevoya.web.app)
+> **Atualizado:** 11 Julho 2026 | [Repo](https://github.com/renato0503/CerraSmartek) | [Produção](https://prevoya.web.app)
 
 ## Status Atual (Jul/2026)
 
 | Fase | Status | Entregue |
 |---|---|---|
-| 0 - Fundação | ✅ Concluída | Next.js, Firebase Auth, Layout, Landing page, Rotas |
-| 1 - Lead Gen | ✅ Concluída | Wizard 4 passos, MapPicker, Raio-X gratuito, PDF jsPDF, Cloud Function `analyzeBairro` |
-| 2 - Monetização | ✅ Concluída | Stripe checkout/webhook, Pipeline IA (Groq+Puppeteer), Dashboard, Visualização relatório |
-| 3 - Crescimento | ✅ Concluída | Leads CRM (CNPJ + Brasil API), Admin dashboard, Rate limiting, Reembolso, Comparativo |
-| 4 - Escala | ✅ Concluída | PWA, WhatsApp share, Nicho templates (9 nichos), Afiliados, Fornecedores B2B |
+| 0 - Fundação | Concluída | Next.js, Firebase Auth, Layout, Landing page, Rotas |
+| 1 - Lead Gen | Concluída | Wizard 4 passos, MapPicker, Raio-X gratuito, PDF jsPDF, `analyzeBairro` |
+| 2 - Monetização | Concluída | Stripe checkout/webhook, Pipeline IA (Groq+Puppeteer), Dashboard, Visualização relatório |
+| 3 - Crescimento | Concluída | CRM kanban com busca/add lead/notas/bulk/export CSV, Admin dashboard com métricas e pipeline, Rate limiting, Reembolso, Comparativo |
+| 4 - Escala | Concluída | PWA, WhatsApp share, Nicho templates (9 nichos), Afiliados, Fornecedores B2B, GitHub Actions CI/CD |
 
-### Cloud Functions deployadas
+### Cloud Functions deployadas (12 funções — TODAS no ar)
 
-| Function | Tipo | Status |
-|---|---|---|
-| `analyzeBairro` (ex-generateFreeReport) | 1st gen HTTPS | ✅ Deployed |
-| `triggerReport`, `aiReportWriter`, `pdfGenerator` | 2nd gen Firestore trigger | ⏳ Pendente (bloqueio org policy Cloud Build) |
+| Function | Geração | Trigger | Runtime | Status |
+|---|---|---|---|---|
+| `analyzeBairro` | 2nd gen | callable | nodejs22 | Deployado (11/07) |
+| `getReportStatus` | 2nd gen | callable | nodejs22 | Deployado |
+| `triggerReport` | 2nd gen | Firestore onDocumentCreated | nodejs20 | Deployado |
+| `aiReportWriter` | 2nd gen | Firestore onDocumentCreated | nodejs20 | Deployado |
+| `pdfGenerator` | 2nd gen | Firestore onDocumentCreated | nodejs20 | Deployado |
+| `createStripeCheckout` | 2nd gen | callable | nodejs20 | Deployado |
+| `createSubscriptionCheckout` | 2nd gen | callable | nodejs20 | Deployado |
+| `stripeWebhook` | 2nd gen | https onRequest | nodejs20 | Deployado |
+| `solicitarReembolso` | 2nd gen | callable | nodejs20 | Deployado |
+| `generateFreeReport` | 2nd gen | callable | nodejs20 | Deployado |
+| `getDemographicData` | 2nd gen | callable | nodejs20 | Deployado |
+| `searchPlaces` | 2nd gen | callable | nodejs20 | Deployado |
 
-### Pendências
+### Firestore: Regras + Índices
 
-- [ ] Resolver bloqueio de Org Policy no Cloud Build para deploy das funções 2nd gen
-- [ ] Configurar Google Places API key (`firebase functions:config:set google.places_api_key="..."`)  
-- [ ] Configurar Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
-- [ ] Criar índices compostos no Firestore (leads por CNPJ)
+- **Regras**: `firestore.rules` com função `isAdmin()` (admin lê todos os briefings e atualiza leads)
+- **Índices compostos**: `firestore.indexes.json`
+  - `briefings`: userId ASC + createdAt DESC
+  - `leads`: cnpj ASC + createdAt ASC
+
+### CI/CD
+
+- **GitHub Actions**: `.github/workflows/deploy.yml`
+  - Build Next.js → Build Functions TS → Deploy Hosting → Deploy Functions
+  - Secrets: `FIREBASE_SERVICE_ACCOUNT`, `NEXT_PUBLIC_FIREBASE_API_KEY`
+  - Dispara a cada push na main
+
+### Pendências Reais
+
+- [ ] Configurar Google Places API key válida (`firebase functions:config:set google.places_api_key="..."`)
+- [ ] Configurar Stripe keys de produção (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
+- [ ] Migrar `functions:config` para `params` package (antes de Março 2027)
+- [ ] Atualizar funções de nodejs20 para nodejs22 (antes de Outubro 2026)
+- [ ] Substituir dados mock (estatísticas landing page) por dados reais do Firestore
 
 ## Índice
 

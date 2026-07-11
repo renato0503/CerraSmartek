@@ -1,6 +1,6 @@
 # Prévoya - Consultor de Negócios Virtual
 
-> **Atualizado:** Julho 2026 | [Repo](https://github.com/renato0503/CerraSmartek) | [Produção](https://prevoya.web.app)
+> **Atualizado:** 11 Julho 2026 | [Repo](https://github.com/renato0503/CerraSmartek) | [Produção](https://prevoya.web.app)
 
 ## Visão Geral
 
@@ -31,10 +31,10 @@ Cruza CEP com dados do IBGE (população, renda média, densidade). Dados cachea
 Análise das avaliações do Google Maps dos 5 principais concorrentes. Extrai reclamações e elogios via análise de palavras-chave. Gera nuvem de palavras.
 
 ### D. Análise de Fornecedores B2B
-Busca de fornecedores próximos ao ponto comercial (distribuidores, atacados). Keywords específicas por nicho (hamburgueria → açougue, pizzaria → distribuidora alimentos, etc).
+Busca de fornecedores próximos ao ponto comercial (distribuidores, atacados). Keywords específicas por nicho.
 
 ### E. SWOT Automático
-Matriz SWOT (Forças, Fraquezas, Oportunidades, Ameaças) gerada por IA (Groq Llama 3.3 70B) com base em todos os dados coletados. Templates específicos para 9 nichos.
+Matriz SWOT gerada por IA (Groq Llama 3.3 70B) com templates específicos para 9 nichos.
 
 ### F. Plano de Ação
 Recomendações de curto e médio prazo, estratégia de diferenciação baseada nos dados coletados.
@@ -55,7 +55,7 @@ Recomendações de curto e médio prazo, estratégia de diferenciação baseada 
 
 1. **Lead gen**: Landing page → modal com Nome, Email, WhatsApp, CNPJ → análise gratuita → upsell completo
 2. **CNPJ rate limit**: 1 análise grátis por CNPJ a cada 30 dias
-3. **CRM no admin**: pipeline de leads (novo → em_contato → qualificado → fechado → perdido)
+3. **CRM no admin**: pipeline de leads (novo → em_contato → qualificado → fechado → perdido) com kanban board
 
 ---
 
@@ -65,18 +65,20 @@ Recomendações de curto e médio prazo, estratégia de diferenciação baseada 
 
 | Camada | Tecnologia | Detalhes |
 |--------|-----------|----------|
-| **Frontend** | Next.js 16 (App Router) + TypeScript + Tailwind | Static export para Firebase Hosting |
+| **Frontend** | Next.js 16 (App Router) + TypeScript + Tailwind v4 | Static export para Firebase Hosting |
 | **Auth** | Firebase Auth | Google + Email/Senha |
 | **Banco de Dados** | Cloud Firestore | NoSQL, tempo real |
-| **Backend** | Cloud Functions 1st gen (Node 22) | `analyzeBairro` (lead gen principal) |
-| **Pipeline IA** | Cloud Functions 2nd gen (pendente deploy) | triggerReport → aiReportWriter → pdfGenerator |
+| **Backend** | Cloud Functions 1st gen + 2nd gen (Node 22) | 12 funções deployadas, região southamerica-east1 |
+| **Pipeline IA** | Cloud Functions 2nd gen | triggerReport → aiReportWriter → pdfGenerator |
 | **Storage** | Cloud Storage | PDFs dos relatórios |
 | **Pagamentos** | Stripe | Checkout + Subscription + Webhook + Refund |
-| **IA / LLM** | Groq API (Llama 3.3 70B) | Chave armazenada via `functions:config:set` |
+| **IA / LLM** | Groq API (Llama 3.3 70B) | Chave via `functions:config` |
 | **PDF cliente** | jsPDF | Download imediato na página de resultado |
 | **PDF servidor** | Puppeteer + Chart.js | Relatório profissional ~10 páginas |
 | **Mapas** | Leaflet.js + OpenStreetMap | Interativo no wizard |
 | **Dados** | Google Places API, IBGE, ViaCEP, Brasil API (CNPJ) | Todos via Cloud Functions |
+| **CI/CD** | GitHub Actions | Build + deploy automático a cada push na main |
+| **SDK Functions** | firebase-functions@6.6.0 | v1 API em `firebase-functions/v1`, v2 em `firebase-functions/v2/*` |
 
 ### O Frontend NÃO expõe APIs
 
@@ -93,7 +95,7 @@ Cliente (Frontend)
   ↓ Landing page → Modal lead capture (nome, email, WhatsApp, CNPJ)
   ↓ Lead salvo no Firestore (coleção leads)
   ↓
-Cloud Function: analyzeBairro (1st gen)
+Cloud Function: analyzeBairro (2nd gen, callable)
   ↓ Geocoding (ViaCEP + Nominatim)
   ↓ Google Places API (nearby search)
   ↓ Cria briefing no Firestore { status: 'concluido' }
@@ -134,12 +136,40 @@ Cloud Function: pdfGenerator (onDocumentCreated pdfQueue)
 | Coleção | Descrição | Regras |
 |---------|-----------|--------|
 | `users/{uid}` | Perfil do usuário (créditos, role) | Read/Write: próprio usuário |
-| `briefings/{id}` | Dados do relatório, status, AI report, PDF URL | Read: próprio usuário; Create: auth; Update: Cloud Functions |
-| `leads/{id}` | Leads capturados (nome, email, WhatsApp, CNPJ, dados empresa) | Read/Write: público (lead gen) |
+| `briefings/{id}` | Dados do relatório, status, AI report, PDF URL | Read: próprio usuário ou admin; Create: auth; Update: Cloud Functions |
+| `leads/{id}` | Leads capturados (nome, email, WhatsApp, CNPJ, notas) | Read: público; Create: público; Update: auth ou admin |
 | `cacheBairros/{cep_raio}` | Cache de Places + IBGE (30 dias TTL) | Read: público; Write: Cloud Functions |
 | `rateLimits/{uid}` | Contador de requisições por usuário/hora | Read/Write: público |
 | `affiliates/{id}` | Registro de cliques de afiliados (?ref=) | Create: público |
 | `failedJobs/{id}` | Dead-letter queue para jobs com falha | Write: Cloud Functions |
+| `aiQueue/{id}` | Fila interna para geração de relatório IA | Bloqueado do cliente |
+| `pdfQueue/{id}` | Fila interna para geração de PDF | Bloqueado do cliente |
+
+### Índices Compostos
+
+| Coleção | Campos | 
+|---------|--------|
+| `briefings` | userId ASC + createdAt DESC |
+| `leads` | cnpj ASC + createdAt ASC |
+
+---
+
+## Cloud Functions Deployadas (12 funções)
+
+| Função | Geração | Trigger | Runtime |
+|--------|---------|---------|---------|
+| `analyzeBairro` | 2nd gen | callable | nodejs22 |
+| `getReportStatus` | 2nd gen | callable | nodejs22 |
+| `triggerReport` | 2nd gen | Firestore onDocumentCreated | nodejs20 |
+| `aiReportWriter` | 2nd gen | Firestore onDocumentCreated | nodejs20 |
+| `pdfGenerator` | 2nd gen | Firestore onDocumentCreated | nodejs20 |
+| `createStripeCheckout` | 2nd gen | callable | nodejs20 |
+| `createSubscriptionCheckout` | 2nd gen | callable | nodejs20 |
+| `stripeWebhook` | 2nd gen | https onRequest | nodejs20 |
+| `solicitarReembolso` | 2nd gen | callable | nodejs20 |
+| `generateFreeReport` | 2nd gen | callable | nodejs20 |
+| `getDemographicData` | 2nd gen | callable | nodejs20 |
+| `searchPlaces` | 2nd gen | callable | nodejs20 |
 
 ---
 
@@ -169,3 +199,36 @@ Cloud Function: pdfGenerator (onDocumentCreated pdfQueue)
 | Brasil API | Dados de CNPJ (razão social, etc) | **Grátis** |
 | Groq API (Llama 3.3) | Redação do relatório (IA) | **Grátis** (dev) |
 | Stripe | Pagamentos | 3,99% |
+
+---
+
+## Deploy
+
+```bash
+# CI/CD automático via GitHub Actions (push na main)
+# Ou manualmente:
+npm run build              # Build Next.js static export
+firebase deploy --only hosting     # Deploy frontend
+firebase deploy --only functions   # Deploy backend
+
+# Para deploy local de funções, é necessário ter as permissões IAM corretas:
+# - Service account 318851644585-compute@developer.gserviceaccount.com
+#   precisa dos papéis: Storage Object Admin, Logs Writer
+# OU deploy via GitHub Actions (recomendado)
+```
+
+### GitHub Actions
+
+Workflow em `.github/workflows/deploy.yml`. Secrets necessários:
+- `FIREBASE_SERVICE_ACCOUNT` — JSON da service account key
+- `NEXT_PUBLIC_FIREBASE_API_KEY` — API key do Firebase
+
+---
+
+## Pendências Conhecidas
+
+- [ ] Configurar Google Places API key (`functions:config:set google.places_api_key="..."`)
+- [ ] Configurar Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`)
+- [ ] Substituir dados mock da landing page por dados reais
+- [ ] Migrar `functions:config` para `params` package (antes de Março 2027)
+- [ ] Atualizar funções de nodejs20 para nodejs22 (antes de Outubro 2026)
