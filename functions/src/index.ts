@@ -13,6 +13,7 @@ export { pdfGenerator } from "./pdfGenerator";
 export { createStripeCheckout } from "./createStripeCheckout";
 export { stripeWebhook } from "./stripeWebhook";
 export { solicitarReembolso } from "./solicitarReembolso";
+export { createSubscriptionCheckout } from "./createSubscriptionCheckout";
 
 export const searchPlaces = onCall(
   { region: "southamerica-east1" },

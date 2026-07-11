@@ -9,6 +9,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import WhatsAppShare from "@/components/ui/WhatsAppShare";
 
 interface ConcorrenteItem {
   place_id: string;
@@ -172,7 +173,10 @@ function ResultadoContent() {
               </h1>
               <p className="mt-1 text-sm text-gray-500">{data.endereco}</p>
             </div>
-            <Button onClick={generatePDF}>Baixar PDF Grátis</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={generatePDF}>Baixar PDF Grátis</Button>
+                <WhatsAppShare briefingId={briefingId} />
+              </div>
           </div>
 
           <Card padding="lg">

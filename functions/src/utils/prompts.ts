@@ -52,3 +52,60 @@ REGRAS:
 - Considere a densidade de concorrentes por km², não apenas o número absoluto.
 - Escreva em português do Brasil.
 `;
+
+export const NICHE_PROMPTS: Record<string, string> = {
+  hamburgueria: `\nCONTEXTO ESPECÍFICO: Hamburgueria
+- Analise o ticket médio vs renda da região para validar se há poder aquisitivo para o produto.
+- Considere fornecedores de carne, pão e embalagens num raio de 3km.
+- Avalie densidade de concorrentes de fast-food e restaurantes similares.
+- Delivery: analise se a região tem alta densidade residencial (potencial delivery).
+- Recomende diferenciação: gourmet, smash, artesanal, temático.`,
+
+  pizzaria: `\nCONTEXTO ESPECÍFICO: Pizzaria
+- Analise concorrência de pizzarias e restaurantes italianos na região.
+- Delivery: fundamental avaliar densidade residencial e raio de entrega.
+- Considere ticket médio da região vs preço de pizza (rodízio vs à la carte).
+- Avalie presença de concorrentes de apps (iFood) na região.`,
+
+  cafeteria: `\nCONTEXTO ESPECÍFICO: Cafeteria
+- Fluxo de pedestres é crítico — analise densidade comercial e de escritórios.
+- Considere proximidade de universidades, coworkings e pontos de ônibus/metrô.
+- Avalie ticket médio de cafés especiais vs renda da região.
+- Concorrência: cafeterias, padarias, franquias de café.`,
+
+  barbearia: `\nCONTEXTO ESPECÍFICO: Barbearia
+- Analise densidade populacional masculina na região (IBGE).
+- Concorrência: barbearias e salões de beleza masculinos.
+- Ticket médio: barbearia premium vs popular.
+- Considere renda média e faixa etária masculina 18-50 anos.`,
+
+  "pet shop": `\nCONTEXTO ESPECÍFICO: Pet Shop
+- Analise densidade de domicílios (IBGE) — estimativa de pets por domicílio.
+- Concorrência: pet shops, clínicas veterinárias, agropecuárias.
+- Considere renda média — pets demandam renda disponível.
+- Oportunidades: banho/tosa, hotelzinho, adestramento.`,
+
+  academia: `\nCONTEXTO ESPECÍFICO: Academia
+- Analise faixa etária e renda da região (público fitness).
+- Concorrência: academias, estúdios, crossfit, box de luta.
+- Considere densidade comercial (pós-trabalho) e residencial.
+- Ticket médio: low-cost vs premium vs boutique.`,
+
+  farmacia: `\nCONTEXTO ESPECÍFICO: Farmácia
+- Analise proximidade de hospitais, postos de saúde e clínicas.
+- Densidade populacional e faixa etária (idosos = maior consumo).
+- Concorrência: farmácias de rede vs independentes.
+- Renda: não é fator crítico — saúde é necessidade básica.`,
+
+  mercado: `\nCONTEXTO ESPECÍFICO: Mercado/Mercearia
+- Analise densidade residencial — conveniência é fator chave.
+- Renda média determina mix de produtos (premium vs popular).
+- Concorrência: supermercados, atacarejos, mercados de bairro.
+- Considere estacionamento e acesso a pé.`,
+
+  padaria: `\nCONTEXTO ESPECÍFICO: Padaria
+- Analise fluxo matinal (pontos de ônibus, metrô, escolas).
+- Densidade residencial e comercial no raio de 500m.
+- Concorrência: padarias, mercados com padaria, cafeterias.
+- Ticket médio de pão francês vs artesanal.`,
+};

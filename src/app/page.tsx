@@ -1,11 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/ui/WhatsAppFloat";
+import PwaInstallPrompt from "@/components/ui/PwaInstallPrompt";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import CepForm from "@/components/landing/CepForm";
+import AffiliateTracker from "@/components/landing/AffiliateTracker";
 
 const FAQ_ITEMS = [
   {
@@ -382,6 +385,8 @@ export default function Home() {
       </main>
       <Footer />
       <WhatsAppFloat />
+      <PwaInstallPrompt />
+      <Suspense><AffiliateTracker /></Suspense>
     </>
   );
 }

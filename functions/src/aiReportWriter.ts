@@ -2,7 +2,7 @@ import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import Groq from "groq-sdk";
-import { SYSTEM_PROMPT } from "./utils/prompts";
+import { SYSTEM_PROMPT, NICHE_PROMPTS } from "./utils/prompts";
 
 const db = admin.firestore();
 
@@ -27,8 +27,11 @@ export const aiReportWriter = onDocumentCreated(
 
       const briefing = briefingDoc.data() || {};
 
+      const nicho = (briefing.nicho || briefing.subcategoria || "") as string;
+      const nichePrompt = NICHE_PROMPTS[nicho.toLowerCase()] || "";
+
       const contexto = {
-        nicho: briefing.nicho || briefing.subcategoria || "",
+        nicho,
         localizacao: briefing.endereco || "",
         cep: briefing.cep || "",
         raio: briefing.raio || 1000,
@@ -43,7 +46,7 @@ export const aiReportWriter = onDocumentCreated(
       let aiReport;
 
       try {
-        aiReport = await callGroq(contexto);
+        aiReport = await callGroq(contexto, nichePrompt);
       } catch {
         aiReport = fallbackReport(contexto);
       }
@@ -74,9 +77,11 @@ export const aiReportWriter = onDocumentCreated(
   }
 );
 
-async function callGroq(contexto: unknown) {
+async function callGroq(contexto: unknown, nichePrompt = "") {
   const groqKey = functions.config().groq?.api_key || process.env.GROQ_API_KEY || "";
   const groq = new Groq({ apiKey: groqKey });
+
+  const systemPrompt = nichePrompt ? SYSTEM_PROMPT + nichePrompt : SYSTEM_PROMPT;
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
