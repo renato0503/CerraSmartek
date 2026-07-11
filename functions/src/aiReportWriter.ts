@@ -1,4 +1,5 @@
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import Groq from "groq-sdk";
 import { SYSTEM_PROMPT } from "./utils/prompts";
@@ -74,7 +75,8 @@ export const aiReportWriter = onDocumentCreated(
 );
 
 async function callGroq(contexto: unknown) {
-  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || "" });
+  const groqKey = functions.config().groq?.api_key || process.env.GROQ_API_KEY || "";
+  const groq = new Groq({ apiKey: groqKey });
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",

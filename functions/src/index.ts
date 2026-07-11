@@ -12,6 +12,7 @@ export { aiReportWriter } from "./aiReportWriter";
 export { pdfGenerator } from "./pdfGenerator";
 export { createStripeCheckout } from "./createStripeCheckout";
 export { stripeWebhook } from "./stripeWebhook";
+export { solicitarReembolso } from "./solicitarReembolso";
 
 export const searchPlaces = onCall(
   { region: "southamerica-east1" },

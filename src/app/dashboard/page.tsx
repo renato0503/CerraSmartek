@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
+import { getUserProfile } from "@/lib/firestore";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 
@@ -29,8 +31,11 @@ const statusMap: Record<string, { label: string; color: string }> = {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [briefings, setBriefings] = useState<BriefingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -70,6 +75,26 @@ export default function DashboardPage() {
     (b) => b.status === "processando" || b.status === "dados_coletados" || b.status === "relatorio_gerado"
   ).length;
 
+  useEffect(() => {
+    if (!user) return;
+    getUserProfile(user.uid).then((p) => {
+      if (p?.role === "admin") setIsAdmin(true);
+    });
+  }, [user]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const goCompare = () => {
+    const ids = [...selectedIds].join(",");
+    router.push(`/comparar?ids=${ids}`);
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -80,9 +105,21 @@ export default function DashboardPage() {
             {processingCount > 0 && ` · ${processingCount} em processamento`}
           </p>
         </div>
-        <Link href="/wizard">
-          <Button>Novo Relatório</Button>
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          {selectedIds.size >= 2 && (
+            <Button variant="secondary" size="sm" onClick={goCompare}>
+              Comparar ({selectedIds.size})
+            </Button>
+          )}
+          {isAdmin && (
+            <Link href="/admin">
+              <Button variant="outline" size="sm">Admin</Button>
+            </Link>
+          )}
+          <Link href="/wizard">
+            <Button>Novo Relatório</Button>
+          </Link>
+        </div>
       </div>
 
       {loading ? (
