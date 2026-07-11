@@ -10,9 +10,9 @@ export default function Footer() {
             <Image
               src="/images/prevoya_logo.png"
               alt="Prévoya"
-              width={140}
-              height={35}
-              className="mb-4 h-8 w-auto brightness-0 invert"
+              width={180}
+              height={45}
+              className="mb-4 h-10 w-auto brightness-0 invert"
             />
             <p className="text-sm leading-relaxed text-gray-400">
               Inteligência de localização para o seu negócio decolar. Análise de concorrência, demografia e viabilidade em minutos.
