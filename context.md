@@ -1,8 +1,10 @@
 # Prévoya - Consultor de Negócios Virtual
 
+> **Atualizado:** Julho 2026 | [Repo](https://github.com/renato0503/CerraSmartek) | [Produção](https://prevoya.web.app)
+
 ## Visão Geral
 
-Prévoya é uma plataforma SaaS que entrega **relatórios de inteligência de localização** para empreendedores que desejam abrir ou expandir negócios físicos. A promessa central não é "usar IA", mas sim **"entregar a decisão pronta"** em formato de laudo técnico profissional (PDF/Dashboard).
+Prévoya é uma plataforma SaaS que entrega **relatórios de inteligência de localização** para empreendedores que desejam abrir ou expandir negócios físicos. A promessa central é **"entregar a decisão pronta"** em formato de laudo técnico profissional (PDF/Dashboard).
 
 ---
 
@@ -10,7 +12,7 @@ Prévoya é uma plataforma SaaS que entrega **relatórios de inteligência de lo
 
 | Elemento | Descrição |
 |----------|-----------|
-| **Interface** | Wizard (assistente passo a passo) / Formulário de Briefing |
+| **Interface** | Wizard (assistente passo a passo) + Modal rápido na landing page |
 | **Entregável** | Relatório visual com gráficos, mapas, análise SWOT e conclusões executivas |
 | **Diferencial** | Curadoria visual + dados validados + tom de consultoria (McKinsey) |
 | **Público-alvo** | Empreendedores, franqueados, corretores comerciais (CRECI), pequenos empresários |
@@ -19,71 +21,68 @@ Prévoya é uma plataforma SaaS que entrega **relatórios de inteligência de lo
 
 ## Features do Relatório
 
-### A. Raio-X Demográfico
-Cruza CEP/Bairro com dados do IBGE. Exibe gráficos de pizza e barras com faixa etária, renda média, densidade populacional no raio definido.
+### A. Raio-X de Concorrentes
+Busca de estabelecimentos via Google Places API no raio definido. Lista com nome, rating, endereço, total de avaliações.
 
-### B. Termômetro de Reputação (Sentimento)
-Scraping de avaliações do Google Maps dos concorrentes. Gera nuvem de palavras + resumo executivo das reclamações e elogios.
+### B. Análise Demográfica
+Cruza CEP com dados do IBGE (população, renda média, densidade). Dados cacheados por 30 dias.
 
-### C. Análise de Tráfego e Fluxo
-Estimativa de horários de pico usando dados de "Popular Times" do Google.
+### C. Termômetro de Reputação
+Análise das avaliações do Google Maps dos 5 principais concorrentes. Extrai reclamações e elogios via análise de palavras-chave. Gera nuvem de palavras.
 
-### D. Análise de "Oceano Azul" (Gap de Mercado)
-Mapa de calor: zonas verdes (oportunidade) vs zonas vermelhas (saturadas) baseado em densidade populacional vs oferta de concorrentes.
+### D. Análise de Fornecedores B2B
+Busca de fornecedores próximos ao ponto comercial (distribuidores, atacados). Keywords específicas por nicho (hamburgueria → açougue, pizzaria → distribuidora alimentos, etc).
 
-### E. Análise de Fornecedores e Parceiros
-Lista de fornecedores B2B próximos ao ponto comercial (distribuidores, embalagens, etc.).
+### E. SWOT Automático
+Matriz SWOT (Forças, Fraquezas, Oportunidades, Ameaças) gerada por IA (Groq Llama 3.3 70B) com base em todos os dados coletados. Templates específicos para 9 nichos.
 
-### F. SWOT Automático
-Matriz SWOT (Forças, Fraquezas, Oportunidades, Ameaças) gerada por IA com base em todos os dados coletados.
+### F. Plano de Ação
+Recomendações de curto e médio prazo, estratégia de diferenciação baseada nos dados coletados.
 
 ---
 
 ## Modelo de Negócio
 
-### Precificação (Créditos)
+### Precificação
 
-| Plano | Créditos | Preço | Público |
-|-------|----------|-------|---------|
-| Análise Básica (Mapa + Lista) | 1 crédito | R$ 25 | Leads (validação) |
-| Análise Completa (Demografia + Reviews + SWOT) | 3 créditos | R$ 75 | Empreendedores |
-| Plano Pro (10 análises/mês) | 10 créditos | R$ 200 | Franqueados |
-| Plano Empresarial (B2B) | ilimitado | R$ 497/mês | Imobiliárias/CRECI |
+| Plano | Preço | Descrição |
+|-------|-------|-----------|
+| Grátis | R$ 0 | Raio-X de concorrentes (1 página), PDF jsPDF |
+| Completo | R$ 75/relatório | Análise completa com IA, SWOT, demografia, PDF profissional (Puppeteer) |
+| Pro | R$ 200/mês | 10 relatórios/mês, API, white-label, suporte prioritário |
 
-### Estratégia de Aquisição (Growth)
+### Funil de Vendas
 
-1. **Relatório Grátis do Seu Bairro**: Lead gen via tráfego pago (Meta Ads). Cliente insere CEP → recebe mini-relatório de 1 página → upsell para relatório completo (R$ 47).
-   - CAC estimado: R$ 3,00 por cliente pago (R$ 0,15/clique, 5% conversão).
-
-2. **Parceria CRECI**: API B2B para imobiliárias. Corretores pagam R$ 197/mês para gerar relatórios para seus clientes comerciais.
-   - Mercado potencial: 180 mil corretores SP × 0,5% = 900 clientes = R$ 177.300/mês.
+1. **Lead gen**: Landing page → modal com Nome, Email, WhatsApp, CNPJ → análise gratuita → upsell completo
+2. **CNPJ rate limit**: 1 análise grátis por CNPJ a cada 30 dias
+3. **CRM no admin**: pipeline de leads (novo → em_contato → qualificado → fechado → perdido)
 
 ---
 
 ## Arquitetura Técnica
 
-### Stack Principal
+### Stack Atual
 
-| Camada | Tecnologia | Justificativa |
-|--------|-----------|---------------|
-| **Frontend** | Next.js 14 (App Router) + TypeScript | SSR opcional, rotas dinâmicas, SEO |
-| **Hosting** | Firebase Hosting | CDN global, SSL grátis, deploy contínuo |
-| **Autenticação** | Firebase Auth | Login Google/Email, 50k MAU grátis |
-| **Banco de Dados** | Cloud Firestore | NoSQL, tempo real, escala automática |
-| **Backend** | Cloud Functions v2 (Node.js 20) | Serverless, 2M invocações/mês grátis |
-| **Storage** | Cloud Storage | PDFs dos relatórios, 5GB grátis |
-| **Pagamentos** | Stripe (Firebase Extension) | Checkout integrado, assinaturas |
-| **Mapas (Frontend)** | Leaflet.js + OpenStreetMap | Grátis, sem limite de requisição |
-| **Mapas (Dados)** | Google Places API | Dados de concorrentes, reviews |
-| **IA / LLM** | Groq API (Llama 4) → OpenAI fallback | Groq gratuito para início, OpenAI para qualidade |
-| **PDF** | Puppeteer + Chart.js | Geração de relatórios visuais no servidor |
-| **Scraping** | Apify (Google Maps Reviews) | Extração legalizada de reviews |
+| Camada | Tecnologia | Detalhes |
+|--------|-----------|----------|
+| **Frontend** | Next.js 16 (App Router) + TypeScript + Tailwind | Static export para Firebase Hosting |
+| **Auth** | Firebase Auth | Google + Email/Senha |
+| **Banco de Dados** | Cloud Firestore | NoSQL, tempo real |
+| **Backend** | Cloud Functions 1st gen (Node 22) | `analyzeBairro` (lead gen principal) |
+| **Pipeline IA** | Cloud Functions 2nd gen (pendente deploy) | triggerReport → aiReportWriter → pdfGenerator |
+| **Storage** | Cloud Storage | PDFs dos relatórios |
+| **Pagamentos** | Stripe | Checkout + Subscription + Webhook + Refund |
+| **IA / LLM** | Groq API (Llama 3.3 70B) | Chave armazenada via `functions:config:set` |
+| **PDF cliente** | jsPDF | Download imediato na página de resultado |
+| **PDF servidor** | Puppeteer + Chart.js | Relatório profissional ~10 páginas |
+| **Mapas** | Leaflet.js + OpenStreetMap | Interativo no wizard |
+| **Dados** | Google Places API, IBGE, ViaCEP, Brasil API (CNPJ) | Todos via Cloud Functions |
 
-### Por que Cloud Functions e não chamadas diretas?
+### O Frontend NÃO expõe APIs
 
-- **Segurança**: API keys (Google, OpenAI, Apify) NUNCA expostas no frontend. Ficam como variáveis de ambiente nas Functions.
-- **Custo**: Rate limiting e caching centralizados evitam chamadas duplicadas.
-- **Controle**: Pipeline orquestrado com retry, timeout e logs.
+- API keys (Google, Groq, Stripe) ficam como `functions:config` ou `process.env` nas Cloud Functions
+- Rate limiting e cache centralizados evitam chamadas duplicadas
+- Static export: sem servidor Next.js — Firebase Hosting serve HTML puro
 
 ---
 
@@ -91,112 +90,82 @@ Matriz SWOT (Forças, Fraquezas, Oportunidades, Ameaças) gerada por IA com base
 
 ```
 Cliente (Frontend)
-  ↓ Preenche Wizard de Briefing + Pagamento (Stripe)
+  ↓ Landing page → Modal lead capture (nome, email, WhatsApp, CNPJ)
+  ↓ Lead salvo no Firestore (coleção leads)
   ↓
-Cloud Function: triggerReport
-  ↓ Cria doc Firestore { status: 'processing' }
+Cloud Function: analyzeBairro (1st gen)
+  ↓ Geocoding (ViaCEP + Nominatim)
+  ↓ Google Places API (nearby search)
+  ↓ Cria briefing no Firestore { status: 'concluido' }
   ↓
-┌─────────────────────────────────────────────────┐
-│ Execução PARALELA (Promise.all)                 │
-│  • placesWorker      → Google Places API        │
-│  • ibgeWorker        → IBGE API                 │
-│  • sentimentWorker   → Apify Google Reviews     │
-│ Todos escrevem resultados parciais no Firestore │
-└─────────────────────────────────────────────────┘
+Redireciona → /resultado?id=xxx
+  ↓ Tabela interativa + jsPDF download
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para plano COMPLETO (pago):
+
+Cliente paga via Stripe Checkout
+  ↓ Webhook confirma pagamento
+  ↓ Briefing { status: 'pagamento_confirmado' }
   ↓
-Cloud Function: aiReportWriter
-  ↓ Coleta TODOS os dados do Firestore
-  ↓ Monta System Prompt rigoroso (estilo McKinsey)
-  ↓ LLM retorna JSON estruturado
+Cloud Function: triggerReport (onDocumentCreated)
+  ↓ Execução PARALELA:
+  │  • placesWorker     → Google Places API
+  │  • ibgeWorker       → IBGE API
+  │  • sentimentWorker  → Google Place Details (reviews)
+  ↓ Firestore { status: 'dados_coletados' }
   ↓
-Cloud Function: pdfGenerator
-  ↓ HTML template + Chart.js → Puppeteer → PDF
-  ↓ Salva no Cloud Storage
-  ↓ Firestore { status: 'completed', pdfUrl: '...' }
+Cloud Function: aiReportWriter (onDocumentCreated aiQueue)
+  ↓ Monta contexto + System Prompt (estilo McKinsey + template do nicho)
+  ↓ Groq API → JSON estruturado
+  ↓ Firestore { status: 'relatorio_gerado', aiReport, swot }
   ↓
-Email ao cliente (Firebase Trigger Email Extension)
-```
-
-### Estratégia de Cache
-
-Antes de chamar APIs externas, consultar `cacheBairros/{cep}_{raio}`. Se `dataCache < 30 dias`, reutilizar dados cacheados. Redução estimada de 80% nos custos de API.
-
----
-
-## Modelo de Dados (Firestore)
-
-### Coleção: `users`
-```
-docId: {uid}
-  email: string
-  nome: string
-  plano: 'free' | 'pro' | 'enterprise'
-  creditos: number
-  createdAt: timestamp
-```
-
-### Coleção: `briefings`
-```
-docId: auto
-  userId: string
-  status: 'pagamento_pendente' | 'processando' | 'concluido' | 'erro'
-  nicho: string
-  cep: string
-  coordenadas: { lat: number, lng: number }
-  raio: number
-  ticketMedio: number
-  dor: string
-  concorrentes: array
-  demografia: object
-  sentimentos: object
-  swot: object
-  aiReport: object
-  pdfUrl: string
-  createdAt: timestamp
-  completedAt: timestamp
-```
-
-### Coleção: `cacheBairros`
-```
-docId: {cep}_{raio}
-  concorrentes: array
-  demografia: object
-  dataCache: timestamp
+Cloud Function: pdfGenerator (onDocumentCreated pdfQueue)
+  ↓ HTML template → Puppeteer → PDF A4
+  ↓ Upload Cloud Storage + signed URL (7 dias)
+  ↓ Firestore { status: 'concluido', pdfUrl }
 ```
 
 ---
 
-## Estimativa de Custos Operacionais
+## Coleções Firestore
 
-| Serviço | Plano Gratuito | 100 relatórios/mês | 1000 relatórios/mês |
-|---------|:---:|:---:|:---:|
-| Firebase Hosting | Grátis | Grátis | Grátis |
-| Firebase Auth | Grátis | Grátis | Grátis |
-| Cloud Functions | Grátis | Grátis | ~$5 |
-| Firestore | Grátis | Grátis | ~$10 |
-| Google Places API | $200 crédito | ~$20 | ~$200 |
-| OpenAI / LLM | Pago por uso | ~$15 (GPT-4o-mini) | ~$150 |
-| Stripe | 3,99% + R$1,50 | 3,99% | 3,99% |
-| **TOTAL** | Grátis (dev) | **~R$ 200/mês** | **~R$ 2.000/mês** |
+| Coleção | Descrição | Regras |
+|---------|-----------|--------|
+| `users/{uid}` | Perfil do usuário (créditos, role) | Read/Write: próprio usuário |
+| `briefings/{id}` | Dados do relatório, status, AI report, PDF URL | Read: próprio usuário; Create: auth; Update: Cloud Functions |
+| `leads/{id}` | Leads capturados (nome, email, WhatsApp, CNPJ, dados empresa) | Read/Write: público (lead gen) |
+| `cacheBairros/{cep_raio}` | Cache de Places + IBGE (30 dias TTL) | Read: público; Write: Cloud Functions |
+| `rateLimits/{uid}` | Contador de requisições por usuário/hora | Read/Write: público |
+| `affiliates/{id}` | Registro de cliques de afiliados (?ref=) | Create: público |
+| `failedJobs/{id}` | Dead-letter queue para jobs com falha | Write: Cloud Functions |
 
-### Estratégia de Custo Zero Inicial
+---
 
-1. **Google Places API**: $200 de crédito mensal gratuito por conta Google Cloud.
-2. **Groq API (Llama 4)**: Gratuito para desenvolvimento e produção inicial.
-3. **OpenStreetMap + Nominatim**: Geocoding gratuito como fallback.
-4. **ViaCEP**: Busca de CEP gratuita e ilimitada.
+## Custos Operacionais (estimativa)
+
+| Serviço | 100 relatórios/mês | 1000 relatórios/mês |
+|---------|:---:|:---:|
+| Firebase Hosting | Grátis | Grátis |
+| Firebase Auth | Grátis | Grátis |
+| Cloud Functions | Grátis | ~R$ 25 |
+| Firestore | Grátis | ~R$ 40 |
+| Google Places API | ~R$ 80 | ~R$ 800 |
+| Groq API | **Grátis** | ~R$ 200 |
+| Stripe | 3,99% + R$1,50 | 3,99% |
+| **TOTAL** | **~R$ 300/mês** | **~R$ 3.500/mês** |
 
 ---
 
 ## APIs Externas
 
-| API | Função | Custo | Alternativa Grátis |
-|-----|--------|-------|-------------------|
-| Google Places API | Buscar concorrentes, reviews | $40/1k req | OpenStreetMap (limitado) |
-| Google Maps JS | Mapa interativo no formulário | Grátis | Leaflet + OSM |
-| Google Geocoding | CEP → coordenadas | $5/1k req | Nominatim / ViaCEP |
-| IBGE API | Demografia e censo | **Grátis** | - |
-| ViaCEP | Busca CEP Brasil | **Grátis** | - |
-| Apify | Scraping Google Reviews | ~$5/1k perfis | Raspar direto (arriscado) |
-| Groq API (Llama 4) | Redação do relatório (IA) | **Grátis** | OpenAI GPT-4o-mini |
-| Stripe | Pagamentos | 3,99% + R$1,50 | Mercado Pago |
+| API | Função | Custo |
+|-----|--------|-------|
+| Google Places API | Concorrentes, reviews, fornecedores | $40/1k req |
+| IBGE API | Demografia e censo | **Grátis** |
+| ViaCEP | Busca CEP Brasil | **Grátis** |
+| Nominatim (OSM) | Geocoding CEP → coordenadas | **Grátis** |
+| Brasil API | Dados de CNPJ (razão social, etc) | **Grátis** |
+| Groq API (Llama 3.3) | Redação do relatório (IA) | **Grátis** (dev) |
+| Stripe | Pagamentos | 3,99% |
