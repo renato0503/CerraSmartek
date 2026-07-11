@@ -112,18 +112,6 @@ export default function Home() {
           <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div>
-                {/* Logo in hero */}
-                <div className="mb-8 flex items-center gap-4">
-                  <Image
-                    src="/images/prevoya_logo.png"
-                    alt="Prévoya"
-                    width={300}
-                    height={75}
-                    className="brightness-0 invert drop-shadow-lg"
-                    priority
-                  />
-                </div>
-
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-4 py-1.5 text-sm font-medium text-amber-300 backdrop-blur">
                   <span className="relative flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
@@ -236,9 +224,20 @@ export default function Home() {
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">Ticket médio compatível</span>
                         <span className="font-bold text-green-600">✓ Sim</span>
-                      </div>
-                    </div>
                   </div>
+                </div>
+                {/* Logo abaixo do card */}
+                <div className="mt-6 flex justify-center">
+                  <Image
+                    src="/images/prevoya_logo.png"
+                    alt="Prévoya"
+                    width={300}
+                    height={75}
+                    className="brightness-0 invert drop-shadow-lg"
+                    priority
+                  />
+                </div>
+              </div>
                 </div>
               </div>
             </div>
