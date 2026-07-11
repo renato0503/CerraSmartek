@@ -248,7 +248,7 @@ function ResultadoContent() {
             </p>
             <div className="mt-4">
               <Link href="/wizard">
-                <Button className="bg-white text-blue-700 hover:bg-blue-50">
+                <Button className="bg-white text-black hover:bg-gray-100">
                   Gerar Relatório Completo — R$ 75
                 </Button>
               </Link>
