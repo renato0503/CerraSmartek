@@ -16,25 +16,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
 
       - name: Install frontend dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Next.js (static export)
         run: npm run build
 
       - name: Install functions dependencies
         working-directory: functions
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build functions TypeScript
         working-directory: functions
         run: npm run build
 
-      - name: Deploy to Firebase
+      - name: Deploy hosting
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-key.json
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > ${{ runner.temp }}/firebase-key.json
-          npx firebase deploy --force
+          npx firebase deploy --only hosting
+
+      - name: Deploy functions
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-key.json
+        run: |
+          npx firebase deploy --only functions --force
+        continue-on-error: true
